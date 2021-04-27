@@ -1,5 +1,5 @@
 // This file contains the code for the crypto routines
-package GoDNSexfiltration
+package FileEncrpytDecrpyt
 
 import (
 	"bufio"
@@ -8,14 +8,13 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"encoding/hex"
 	"flag"
 	"fmt"
-	"math/big"
 	"os"
 
 	// Every project needs to have the "go get {REPOSITORY}"
 	// command run for the dependencies
+
 	"github.com/kevinburke/nacl"
 	"github.com/kevinburke/nacl/secretbox"
 
@@ -23,8 +22,6 @@ import (
 	// Now this is used instead of the internal logger
 	// when you type "log"
 	log "github.com/sirupsen/logrus"
-
-	"github.com/fatih/color"
 )
 
 // bytes per read operation
@@ -50,26 +47,6 @@ func StartLogger(logfile string) (return_code int) {
 	return 1
 }
 
-// returns the errors but adds them to a log while printing a
-// message to the screen for your viewing pleasure
-// actions are :panic,alarm,exit,debug
-func ErrorHandling(derp error, message string, action string) error {
-	switch action {
-	case "panic":
-		log.Panic()
-		log.Error(message)
-		//color.Red(message)
-	case "warn":
-		log.Warn()
-	case "fatal":
-		log.Fatal()
-
-	}
-	log.Error(message)
-	color.Red(message)
-	return derp
-}
-
 // shows entries from the logfile, starting at the bottom
 // limit by line number, loglevel, or time
 func ShowLogs(LinesToPrint int, loglevel string, time string) {
@@ -78,25 +55,6 @@ func ShowLogs(LinesToPrint int, loglevel string, time string) {
 	//	case "error":
 	//		log.ErrorLevel
 
-}
-
-// debugging feedback function
-// prints colored text for easy visual identification of data
-// color_int (1,red)(2,green)(3,blue)(4,yellow)
-func DebugPrint(color_int int8, message string, PrintFormat string) {
-	//if color_int
-	switch color_int {
-	//is 1
-	case 1:
-		color.Red(message, PrintFormat)
-		// and so on
-	case 2:
-		color.Blue(message, PrintFormat)
-	case 3:
-		color.Green(message, PrintFormat)
-	case 4:
-		color.Yellow(message, PrintFormat)
-	}
 }
 
 // function to use zlib to compress a byte array
@@ -160,22 +118,13 @@ func OpenFile(filename string) (filebytes []byte) {
 // options are:
 //		"gcm"
 //		"salty"
-func NonceGenerator(NonceType string) (nonce []byte, derp error) {
-	switch NonceType{
-	case "gcm":
-		nonce := make([]byte, aesGCM.NonceSize())
-		
-	case "salty" :
-		bitsize := big.NewInt(24)
-		nonce = make([]byte, 24)
-		// make random 24 bit prime number
-		if _, err := rand.Read(nonce); err != nil {
-			fmt.Sprintf("[-] Failed to generate 64-bit Random Number", derp)
-		}
+func NonceGenerator(NonceType string, size int) (nonce []byte, derp error) {
+	nonce = make([]byte, 24)
+	// make random 24 bit prime number
+	herp, derp := rand.Read(nonce)
+	if derp != nil {
+		fmt.Sprintf("[-] Failed to generate %i-bit Random Number :", size, derp)
 	}
-	//copy number into buffer
-	// after converting bigint to byte with internal method
-	//copy(nonce, n.Bytes())
 	return nonce, derp
 }
 
@@ -209,7 +158,7 @@ func GCMEncrypter(key []byte, plaintext []byte, nonce []byte) (EncryptedBytes []
 	//if _, derp := io.ReadFull(rand.Reader, nonce); derp != nil {
 	//	fmt.Sprintf("generic error, fix me plz lol <3!", derp)
 	//}
-	aesgcm, derp := cipher.NewGCM(block)
+	aesgcm, derp := cipher.NewGCM(block) // cipher.NewGCM(block)
 	if derp != nil {
 		fmt.Sprintf("generic error, fix me plz lol <3!", derp)
 	}
@@ -289,7 +238,7 @@ type FlagVals struct {
 
 // give the idea an action
 func (FlagPassed *FlagVals) Set(FlagValue string) error {
-	FlagPassed.FlagValue = str
+	FlagPassed.FlagValue = FlagValue
 	FlagPassed.set = true
 	return nil
 }
@@ -344,6 +293,6 @@ func main() {
 		if derp != nil {
 			fmt.Sprintf("[-] Nonce Generation FAILED!", derp)
 		}
-		EncryptedText, derp := GCMEncrypter(key, ,nonce)
+		EncryptedText, derp := GCMEncrypter(key, nonce)
 	}
 }
