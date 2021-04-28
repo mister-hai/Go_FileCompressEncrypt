@@ -371,61 +371,50 @@ func main() {
 	}
 	// Encode the key
 	key, _ := hex.DecodeString(EncryptionKey.FlagValue)
-	//
 	// create nonce
-	//
 	nonce, derp := NonceGenerator(32)
-	//
 	// check for errors
-	//
 	if derp != nil {
 		fmt.Sprintf("[-] Nonce Generation FAILED!", derp)
 	}
-	//
 	// open the file
-	//
 	fileobject := OpenFile(filename.FlagValue)
-	//
 	// If we are decrypting, we decrypt/decompress
-	//
 	if &decrypt == true{
 		plaintext , derp = GCMDecrypter(key, nonce, herp)
 		herp, derp := ZDecompress(plaintext)
 		if derp != nil {
 			fmt.Sprintf("[-] Could not compress file", derp)
 		}
+			// if we are piping the data
+		if pipe == true {
+			PipedInput , derp := PipeReader()
+			fmt.printf("%s", PipedInput)
+		} else {
+			WriteFile(herp, filename)
+		}
+	}
+	if &encrypt = true{
+		// compress the file
+		herp, _ := ZCompress(fileobject)
+		// Switch/Case Usage: Select Encryption Type
+		switch EncryptionType.FlagValue {
+		// in case we want to use internal aes
+		case "aes":
+			// Write encrypted text to file
+			if pipe == true {
+				PipedInput , derp := PipeReader()
+				if derp != nil {
+					fmt.Sprintf("[-] Could not file", derp)
+				}
+				EncryptedText, derp := GCMEncrypter(key, nonce, herp)
 		// if we are piping the data
 		if pipe == true {
 			PipedInput , derp := PipeReader()
 			fmt.printf("%s", PipedInput)
+		} else {
+			WriteFile(herp, filename)
 		}
 	}
-	if &encrypt = 
-		//DebugPrint(1, "--filename set to %q\n", filename.FlagValue)
-		// encode the key to hex
-		//ENCRYPTIONKEY := hex.EncodeToString()
-		//
-		// compress the file
-		//
-		herp, derp := ZCompress(fileobject)
-		//
-		// Check for errors
-		//
-		if derp != nil {
-			fmt.Sprintf("[-] Could not compress file", derp)
-		}
-		//
-		// Switch/Case Usage: Select Encryption Type
-		//
-		switch EncryptionType.FlagValue {
-		// in case we want to use internal aes
-		case "aes":
-			//
-			// Write encrypted text to file
-			//
-
-			EncryptedText, derp := GCMEncrypter(key, nonce, herp)
-
-		}
 	}
 }
