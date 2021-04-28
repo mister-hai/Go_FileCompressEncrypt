@@ -11,6 +11,7 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 
@@ -279,16 +280,12 @@ func saltDEcrypt(keystring string, data []byte) []byte {
 
 // Reads from Pipe into []byte for commandline operations
 //https://flaviocopes.com/go-shell-pipes/
-func PipeReader(){
+func PipeReader() (PipedInput []byte) {
 	info, err := os.Stdin.Stat()
-    if err != nil {
-        panic(err)
-    }
-	if info.Mode()&os.ModeCharDevice != 0 || info.Size() <= 0 {
-		fmt.Println(Usage)
-		fmt.Println("Usage: fortune | gocowsay")
-		return
+	if err != nil {
+		panic(err)
 	}
+	//if info.Mode()&os.ModeCharDevice != 0 || info.Size() <= 0 {return}
 	reader := bufio.NewReader(os.Stdin)
 	var output []rune
 	for {
@@ -296,14 +293,13 @@ func PipeReader(){
 		if err != nil && err == io.EOF {
 			break
 		}
-		output = append(output, input)
+		PipedInput = append(PipedInput, input)
 	}
 
 	//for j := 0; j < len(output); j++ {
 	//	fmt.Printf("%c", output[j])
-	}
 }
-}
+
 /*/
 
 
@@ -352,7 +348,7 @@ func main() {
 	var help = flag.Bool("help", false, "show help.")
 	var decrypt = flag.Bool("decrypt", false, "Use this flag if decrypting")
 	var encrypt = flag.Bool("encrypt", false, "Use this flag if encrypting")
-	var pipe    = flag.Bool("pipe", false, "use this flag if using pipe redirection Usage: cat ./narf.txt | gocrypt -pipe -encrypt -enctype aes256gcm -key asdf123 ")
+	var pipe = flag.Bool("pipe", false, "use this flag if using pipe redirection Usage: cat ./narf.txt | gocrypt -pipe -encrypt -enctype aes256gcm -key asdf123 ")
 	flag.Parse()
 
 	if *help || len(os.Args) == 1 {
