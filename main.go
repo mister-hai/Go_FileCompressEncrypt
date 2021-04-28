@@ -8,6 +8,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"os"
@@ -58,7 +59,7 @@ func ShowLogs(LinesToPrint int, loglevel string, time string) {
 }
 
 // function to use zlib to compress a byte array
-func ZCompress(input []byte) (herp bytes.Buffer, derp error) {
+func ZCompress(input []byte) (herp []byte, derp error) {
 	var b bytes.Buffer
 	// feed the writer a buffer
 	w := zlib.NewWriter(&b)
@@ -68,7 +69,7 @@ func ZCompress(input []byte) (herp bytes.Buffer, derp error) {
 	// and then we close the connection
 	w.Close()
 	// and copy the buffer to the output
-	//copy(herp, b.Bytes())
+	copy(herp, b.Bytes())
 	return herp, derp
 }
 
@@ -267,7 +268,7 @@ func init() {
 func main() {
 	//var debug = flag.Bool("d", false, "enable debugging.")
 	var help = flag.Bool("help", false, "show help.")
-
+	var SelectOp = flag.Bool("decrypt", true, "Use this flag if decrypting")
 	flag.Parse()
 
 	if *help || len(os.Args) == 1 {
@@ -278,6 +279,12 @@ func main() {
 	// open the file
 	//
 	fileobject := OpenFile(filename.FlagValue)
+	//
+	// If we are decrypting, we decrypt/decompress
+	//
+	if *SelectOp == true {
+
+	}
 	//DebugPrint(1, "--filename set to %q\n", filename.FlagValue)
 	// encode the key to hex
 	//ENCRYPTIONKEY := hex.EncodeToString()
@@ -310,6 +317,7 @@ func main() {
 		//
 		// Write encrypted text to file
 		//
-		EncryptedText, derp := GCMEncrypter(EncryptionKey.FlagValue, nonce, herp)
+		key, _ := hex.DecodeString(EncryptionKey.FlagValue)
+		EncryptedText, derp := GCMEncrypter(key, nonce, herp)
 	}
 }
