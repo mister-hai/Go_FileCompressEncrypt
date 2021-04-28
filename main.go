@@ -73,8 +73,9 @@ func ZCompress(input []byte) (herp []byte, derp error) {
 	return herp, derp
 }
 
-// compresses []byte with zlib
-func ZDecompress(DataIn []byte) (DataOut []byte) {
+// decompresses []byte with zlib
+// feed it a file blob
+func ZDecompress(DataIn []byte) (DataOut []byte, derp error) {
 	byte_reader := bytes.NewReader(DataIn)
 	ZReader, derp := zlib.NewReader(byte_reader)
 	if derp != nil {
@@ -82,7 +83,7 @@ func ZDecompress(DataIn []byte) (DataOut []byte) {
 	}
 	copy(DataOut, DataIn)
 	ZReader.Close()
-	return DataOut
+	return DataOut, derp
 }
 
 // opens files for reading and writing
@@ -124,7 +125,7 @@ func NonceGenerator(size int) (nonce []byte, derp error) {
 	// make random 24 bit prime number
 	herp, derp := rand.Read(nonce)
 	if derp != nil {
-		fmt.Sprintf("[-] Failed to generate %i-bit Random Number :", size, derp)
+		fmt.Sprintf("[-] Failed to generate %i-bit Random Number , len(bytes):%i", size, herp, derp)
 	}
 	return nonce, derp
 }
@@ -275,6 +276,18 @@ func main() {
 		flag.PrintDefaults()
 		return
 	}
+	// Encode the key
+	key, _ := hex.DecodeString(EncryptionKey.FlagValue)
+	//
+	// create nonce
+	//
+	nonce, derp := NonceGenerator(32)
+	//
+	// check for errors
+	//
+	if derp != nil {
+		fmt.Sprintf("[-] Nonce Generation FAILED!", derp)
+	}
 	//
 	// open the file
 	//
@@ -282,42 +295,39 @@ func main() {
 	//
 	// If we are decrypting, we decrypt/decompress
 	//
-	if *SelectOp == true {
+	switch *SelectOp {
 
-	}
-	//DebugPrint(1, "--filename set to %q\n", filename.FlagValue)
-	// encode the key to hex
-	//ENCRYPTIONKEY := hex.EncodeToString()
-	//
-	// compress the file
-	//
-	herp, derp := ZCompress(fileobject)
-	//
-	// Check for errors
-	//
-	if derp != nil {
-		fmt.Sprintf("[-] Could not compress file", derp)
-	}
-	//
-	// Switch/Case Usage: Select Encryption Type
-	//
-	switch EncryptionType.FlagValue {
-	// in case we want to use internal aes
-	case "aes":
+	case true:
+		herp, derp := ZDecompress(fileobject)
+		if derp != nil {
+			fmt.Sprintf("[-] Could not compress file", derp)
+		}
+		GCMDecrypter(key, nonce, herp)
+	case false:
+		//DebugPrint(1, "--filename set to %q\n", filename.FlagValue)
+		// encode the key to hex
+		//ENCRYPTIONKEY := hex.EncodeToString()
 		//
-		// create nonce
+		// compress the file
 		//
-		nonce, derp := NonceGenerator(32)
+		herp, derp := ZCompress(fileobject)
 		//
-		// check for errors
+		// Check for errors
 		//
 		if derp != nil {
-			fmt.Sprintf("[-] Nonce Generation FAILED!", derp)
+			fmt.Sprintf("[-] Could not compress file", derp)
 		}
 		//
-		// Write encrypted text to file
+		// Switch/Case Usage: Select Encryption Type
 		//
-		key, _ := hex.DecodeString(EncryptionKey.FlagValue)
-		EncryptedText, derp := GCMEncrypter(key, nonce, herp)
+		switch EncryptionType.FlagValue {
+		// in case we want to use internal aes
+		case "aes":
+			//
+			// Write encrypted text to file
+			//
+
+			EncryptedText, derp := GCMEncrypter(key, nonce, herp)
+		}
 	}
 }
