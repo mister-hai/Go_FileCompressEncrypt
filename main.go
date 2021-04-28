@@ -140,21 +140,14 @@ func CreateFile(FileName string) (CreatedFile *os.File, derp error) {
 	return CreatedFile, derp
 }
 
-func WriteFile1(FileObject []byte, FileName string) (derp error) {
-	// This creates a file for writing
-	CreatedFile, derp := os.Create(FileName)
-	if derp != nil {
-		fmt.Sprintf("[-] Could not Create File with Permissions %d", derp)
-	}
-	// prevent file from closing
-	defer CreatedFile.Close()
-	// This writes data to it in the form of []byte
-	LengthOfDataWritten1, derp := CreatedFile.Write(FileObject)
+// This writes data to it in the form of []byte
+func WriteFile1(FileObject []byte, File *os.File) (derp error) {
+	LengthOfDataWritten1, derp := File.Write(FileObject)
 	if derp != nil {
 		fmt.Sprintf("[-] Could not Write File", derp)
 	}
 	fmt.Printf("wrote %d bytes\n", LengthOfDataWritten1)
-	CreatedFile.Sync()
+	File.Sync()
 	return derp
 }
 
@@ -166,12 +159,15 @@ func WriteFile2(FileData string, File *os.File) (derp error) {
 	}
 	fmt.Printf("wrote %d bytes\n", LengthOfDataWritten2)
 	File.Sync()
+	return derp
+}
 
-	// This creates a file and writes
-	BufferWriter := bufio.NewWriter(CreatedFile)
-	LengthOfDataWritten3, derp := BufferWriter.WriteString("buffered\n")
+func WriteFile3(File *os.File, FileData string) (derp error) {
+	// This writes with Bufio
+	BufferWriter := bufio.NewWriter(File)
+	LengthOfDataWritten3, derp := BufferWriter.WriteString(FileData)
 	if derp != nil {
-		fmt.Sprintf("[-] Could not write file", derp)
+		fmt.Sprintf("[-] Could not write file With bufio.", derp)
 	}
 	fmt.Printf("wrote %d bytes\n", LengthOfDataWritten3)
 	BufferWriter.Flush()
