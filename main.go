@@ -124,34 +124,49 @@ func check(e error) {
 
 // This file uses []bytes but there are other ways to write files
 //
-func WriteFile([]byte) (herp int, derp error) {
+func WriteFile(FileObject []byte, FileName string) (derp error) {
 	// WriteFile writes []byte to a file named by filename.
 	// this is the one used in this tutorial
-	d1 := []byte("hello\ngo\n")
-	err := ioutil.WriteFile("/tmp/dat1", d1, 0644)
-	check(err)
+	//d1 := []byte("hello\ngo\n")
+	derp = ioutil.WriteFile(FileName, FileObject, 0644)
+	if derp != nil {
+		fmt.Sprintf("[-] Could not Write File", derp)
+		break
+	}
+	return derp
+}
 
-	//
 	// This creates a file for writing
 	CreatedFile, err := os.Create("/tmp/dat2")
 	check(err)
 	defer CreatedFile.Close()
-
-	d2 := []byte{115, 111, 109, 101, 10}
-	n2, err := CreatedFile.Write(d2)
-	check(err)
-	fmt.Printf("wrote %d bytes\n", n2)
-
-	n3, err := CreatedFile.WriteString("writes\n")
-	check(err)
-	fmt.Printf("wrote %d bytes\n", n3)
+	// This writes data to it in the form of []byte
+	DataForFile1 := []byte{115, 111, 109, 101, 10}
+	LengthOfDataWritten1, err := CreatedFile.Write(DataForFile1)
+	if derp != nil {
+		fmt.Sprintf("[-] Could not Write File", derp)
+		break
+	}
+	fmt.Printf("wrote %d bytes\n", LengthOfDataWritten1)
+	// This writes data to it in the form of strings
+	LengthOfDataWritten2, err := CreatedFile.WriteString("writes\n")
+	if derp != nil {
+		fmt.Sprintf("[-] Could not write file", derp)
+		break
+	}
+	fmt.Printf("wrote %d bytes\n", LengthOfDataWritten2)
 	CreatedFile.Sync()
 
 	BufferWriter := bufio.NewWriter(CreatedFile)
-	n4, err := BufferWriter.WriteString("buffered\n")
-	check(err)
-	fmt.Printf("wrote %d bytes\n", n4)
+	LengthOfDataWritten3, err := BufferWriter.WriteString("buffered\n")
+	if derp != nil {
+		fmt.Sprintf("[-] Could not write file", derp)
+		break
+	}
+	fmt.Printf("wrote %d bytes\n", LengthOfDataWritten3)
 	BufferWriter.Flush()
+
+	return derp
 }
 
 // This function creates a nonce with the bit size set at 24
