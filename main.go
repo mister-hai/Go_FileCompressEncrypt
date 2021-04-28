@@ -1,5 +1,5 @@
 // This file contains the code for the crypto routines
-package FileEncrpytDecrpyt
+package GoDNSexfiltration
 
 import (
 	"bufio"
@@ -118,7 +118,7 @@ func OpenFile(filename string) (filebytes []byte) {
 // options are:
 //		"gcm"
 //		"salty"
-func NonceGenerator(NonceType string, size int) (nonce []byte, derp error) {
+func NonceGenerator(size int) (nonce []byte, derp error) {
 	nonce = make([]byte, 24)
 	// make random 24 bit prime number
 	herp, derp := rand.Read(nonce)
@@ -274,25 +274,42 @@ func main() {
 		flag.PrintDefaults()
 		return
 	}
-	// make a buffer
-	key := make([]byte, 32)
-	// copy key into it
-	copy(key, EncryptionKey.FlagValue)
+	//
 	// open the file
+	//
 	fileobject := OpenFile(filename.FlagValue)
-	DebugPrint(1, "--filename set to %q\n", filename.FlagValue)
+	//DebugPrint(1, "--filename set to %q\n", filename.FlagValue)
 	// encode the key to hex
 	//ENCRYPTIONKEY := hex.EncodeToString()
+	//
+	// compress the file
+	//
 	herp, derp := ZCompress(fileobject)
+	//
+	// Check for errors
+	//
 	if derp != nil {
 		fmt.Sprintf("[-] Could not compress file", derp)
 	}
+	//
+	// Switch/Case Usage: Select Encryption Type
+	//
 	switch EncryptionType.FlagValue {
+	// in case we want to use internal aes
 	case "aes":
-		nonce, derp := NonceGenerator("gcm")
+		//
+		// create nonce
+		//
+		nonce, derp := NonceGenerator(32)
+		//
+		// check for errors
+		//
 		if derp != nil {
 			fmt.Sprintf("[-] Nonce Generation FAILED!", derp)
 		}
-		EncryptedText, derp := GCMEncrypter(key, nonce)
+		//
+		// Write encrypted text to file
+		//
+		EncryptedText, derp := GCMEncrypter(EncryptionKey.FlagValue, nonce, herp)
 	}
 }
