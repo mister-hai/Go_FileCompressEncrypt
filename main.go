@@ -1,5 +1,5 @@
 // This file contains the code for the crypto routines
-package GoDNSexfiltration
+package GoFileCompressEncrypt
 
 import (
 	"bufio"
@@ -131,37 +131,48 @@ func WriteFile(FileObject []byte, FileName string) (derp error) {
 	derp = ioutil.WriteFile(FileName, FileObject, 0644)
 	if derp != nil {
 		fmt.Sprintf("[-] Could not Write File", derp)
-		break
 	}
 	return derp
 }
 
+func WriteFile1(FileObject []byte, FileName string) (derp error) {
 	// This creates a file for writing
-	CreatedFile, err := os.Create("/tmp/dat2")
-	check(err)
+	CreatedFile, derp := os.Create(FileName)
+	if derp != nil {
+		fmt.Sprintf("[-] Could not Create File with Permissions %d", derp)
+	}
+	// prevent file from closing
 	defer CreatedFile.Close()
 	// This writes data to it in the form of []byte
-	DataForFile1 := []byte{115, 111, 109, 101, 10}
-	LengthOfDataWritten1, err := CreatedFile.Write(DataForFile1)
+	LengthOfDataWritten1, derp := CreatedFile.Write(FileObject)
 	if derp != nil {
 		fmt.Sprintf("[-] Could not Write File", derp)
-		break
 	}
 	fmt.Printf("wrote %d bytes\n", LengthOfDataWritten1)
+	CreatedFile.Sync()
+	return derp
+}
+
+func WriteFile2(FileObject string, FileName string) (derp error) {
+	// This creates a file for writing
+	CreatedFile, derp := os.Create(FileName)
+	if derp != nil {
+		fmt.Sprintf("[-] Could not Create File with Permissions %d", derp)
+	}
+	// prevent file from closing
+	defer CreatedFile.Close()
 	// This writes data to it in the form of strings
-	LengthOfDataWritten2, err := CreatedFile.WriteString("writes\n")
+	LengthOfDataWritten2, derp := CreatedFile.WriteString("writes\n")
 	if derp != nil {
 		fmt.Sprintf("[-] Could not write file", derp)
-		break
 	}
 	fmt.Printf("wrote %d bytes\n", LengthOfDataWritten2)
 	CreatedFile.Sync()
 
 	BufferWriter := bufio.NewWriter(CreatedFile)
-	LengthOfDataWritten3, err := BufferWriter.WriteString("buffered\n")
+	LengthOfDataWritten3, derp := BufferWriter.WriteString("buffered\n")
 	if derp != nil {
 		fmt.Sprintf("[-] Could not write file", derp)
-		break
 	}
 	fmt.Printf("wrote %d bytes\n", LengthOfDataWritten3)
 	BufferWriter.Flush()
