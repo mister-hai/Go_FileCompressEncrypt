@@ -277,10 +277,33 @@ func saltDEcrypt(keystring string, data []byte) []byte {
 	return decrypted
 }
 
-func Decrypt(TypeSelection int, key []byte) {
+// Reads from Pipe into []byte for commandline operations
+//https://flaviocopes.com/go-shell-pipes/
+func PipeReader(){
+	info, err := os.Stdin.Stat()
+    if err != nil {
+        panic(err)
+    }
+	if info.Mode()&os.ModeCharDevice != 0 || info.Size() <= 0 {
+		fmt.Println(Usage)
+		fmt.Println("Usage: fortune | gocowsay")
+		return
+	}
+	reader := bufio.NewReader(os.Stdin)
+	var output []rune
+	for {
+		input, _, err := reader.ReadRune()
+		if err != nil && err == io.EOF {
+			break
+		}
+		output = append(output, input)
+	}
 
+	//for j := 0; j < len(output); j++ {
+	//	fmt.Printf("%c", output[j])
+	}
 }
-
+}
 /*/
 
 
@@ -320,15 +343,16 @@ var EncryptionType FlagVals
 
 // set before flag options in main
 func init() {
-	flag.Var(&filename, "filename", "the local file to exfiltrate.")
+	flag.Var(&filename, "filename", "the local file to Read/Write.")
 	flag.Var(&EncryptionKey, "key", "Encryption Key to use")
 	flag.Var(&EncryptionType, " enctype", "Encryption Type , Can be: aes256gcm / salty ")
-
 }
 func main() {
 	//var debug = flag.Bool("d", false, "enable debugging.")
 	var help = flag.Bool("help", false, "show help.")
-	var SelectOp = flag.Bool("decrypt", true, "Use this flag if decrypting")
+	var decrypt = flag.Bool("decrypt", false, "Use this flag if decrypting")
+	var encrypt = flag.Bool("encrypt", false, "Use this flag if encrypting")
+	var pipe    = flag.Bool("pipe", false, "use this flag if using pipe redirection Usage: cat ./narf.txt | gocrypt -pipe -encrypt -enctype aes256gcm -key asdf123 ")
 	flag.Parse()
 
 	if *help || len(os.Args) == 1 {
