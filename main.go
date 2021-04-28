@@ -87,7 +87,7 @@ func ZDecompress(DataIn []byte) (DataOut []byte, derp error) {
 	return DataOut, derp
 }
 
-// opens files for reading and writing
+// opens files for reading
 func OpenFile(filename string) (filebytes []byte) {
 	// open the file
 	herp, derp := os.Open(filename)
@@ -117,12 +117,11 @@ func OpenFile(filename string) (filebytes []byte) {
 	return buffer
 }
 
-// This file uses []bytes but there are other ways to write files
-//
+// This file operation uses []bytes but there are other ways to write files
+// This is ioutil
 func WriteFile(FileObject []byte, FileName string) (derp error) {
 	// WriteFile writes []byte to a file named by filename.
 	// this is the one used in this tutorial
-	//d1 := []byte("hello\ngo\n")
 	derp = ioutil.WriteFile(FileName, FileObject, 0644)
 	if derp != nil {
 		fmt.Sprintf("[-] Could not Write File", derp)
@@ -159,14 +158,14 @@ func WriteFile1(FileObject []byte, FileName string) (derp error) {
 	return derp
 }
 
-func WriteFile2(FileObject string, FileName string) (derp error) {
+func WriteFile2(FileData string, File *os.File) (derp error) {
 	// This writes data to it in the form of strings
-	LengthOfDataWritten2, derp := CreatedFile.WriteString(FileObject)
+	LengthOfDataWritten2, derp := File.WriteString(FileData)
 	if derp != nil {
 		fmt.Sprintf("[-] Could not write file", derp)
 	}
 	fmt.Printf("wrote %d bytes\n", LengthOfDataWritten2)
-	CreatedFile.Sync()
+	File.Sync()
 
 	// This creates a file and writes
 	BufferWriter := bufio.NewWriter(CreatedFile)
