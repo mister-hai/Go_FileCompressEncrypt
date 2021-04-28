@@ -14,6 +14,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"unicode/utf8"
 
 	// Every project needs to have the "go get {REPOSITORY}"
 	// command run for the dependencies
@@ -280,35 +281,48 @@ func saltDEcrypt(keystring string, data []byte) []byte {
 
 // Reads from Pipe into []byte for commandline operations
 //https://flaviocopes.com/go-shell-pipes/
-func PipeReader() (PipedInput []byte) {
-	info, err := os.Stdin.Stat()
-	if err != nil {
-		panic(err)
+func PipeReader() (PipedInput []byte, derp error){
+	// checks pipe operation
+	_, derp := os.Stdin.Stat()
+	if derp != nil {
+		fmt.Sprintf("[-] FATAL ERROR: Could not Pipe data!", derp)
+		log.Fatal(derp)
 	}
-	//if info.Mode()&os.ModeCharDevice != 0 || info.Size() <= 0 {return}
+	/*/
+FileInfo.Mode() returns the uint32 mask that determines the file mode 
+and permissions as a const (https://golang.org/pkg/os/#FileMode).
+Usign a bitwise AND determines if the file mode is os.ModeCharDevice. 
+This is a way to make sure that the file points to a ModeCharDevice, 
+the Unix character device (terminal). Since the file points to os.Stdin, 
+We’re basically excluding the input being a pipe. Bitwise returns 0 if 
+the mode is not the constant we pass. We could also check for
+/*/
+	//if info.Mode()&os.ModeCharDevice != 0 || info.Size() <= 0 {
+	//	return
+	//}
+	if info.Mode()&os.ModeNamedPipe != 0 {
+	// we have a pipe input
+	
 	reader := bufio.NewReader(os.Stdin)
-	var output []rune
-	for {
-		input, _, err := reader.ReadRune()
-		if err != nil && err == io.EOF {
-			break
+	//var output []rune
+		for {
+			input, _, err := reader.ReadRune()
+			if err != nil && err == io.EOF {
+				break
+			}
 		}
-		PipedInput = append(PipedInput, input)
+		bs := make([]byte, len(input)*utf8.UTFMax)
+		count := 0
+		for _, r := range input {
+		count += utf8.EncodeRune(bs[count:], r)
+			}
 	}
+	copy(PipedInput, bs[:count])
+	return PipedInput , derp
+}
 
 	//for j := 0; j < len(output); j++ {
 	//	fmt.Printf("%c", output[j])
-}
-
-/*/
-
-
-/*/
-// struct to contain the message as octets hidden an ipv6 record set
-var Hex2IPV6Stego struct {
-	ciphertext []byte
-}
-
 //https://stackoverflow.com/questions/35809252/check-if-flag-was-provided-in-go
 // make the idea exist
 type FlagVals struct {
@@ -374,15 +388,19 @@ func main() {
 	//
 	// If we are decrypting, we decrypt/decompress
 	//
-	switch *SelectOp {
-
-	case true:
-		herp, derp := ZDecompress(fileobject)
+	if &decrypt == true{
+		plaintext , derp = GCMDecrypter(key, nonce, herp)
+		herp, derp := ZDecompress(plaintext)
 		if derp != nil {
 			fmt.Sprintf("[-] Could not compress file", derp)
 		}
-		GCMDecrypter(key, nonce, herp)
-	case false:
+		// if we are piping the data
+		if pipe == true {
+			PipedInput , derp := PipeReader()
+			fmt.printf("%s", PipedInput)
+		}
+	}
+	if &encrypt = 
 		//DebugPrint(1, "--filename set to %q\n", filename.FlagValue)
 		// encode the key to hex
 		//ENCRYPTIONKEY := hex.EncodeToString()
